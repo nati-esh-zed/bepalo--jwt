@@ -17,6 +17,9 @@ pnpm add @bepalo/jwt
 npm install @bepalo/jwt
 ```
 
+**📕 NOTE:** _The `ES512`(`P-521`) algorithm is less common and might not be supported on the runtime of your preference.
+But you can use `ES256` or `ES384`, or switch to a runtime that supports it._
+
 ## ✨ Features
 
 - 🎯 JWT sign and verify with HMAC, ECDSA, RSA, RSA-PSS algorithms
