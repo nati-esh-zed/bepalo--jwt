@@ -2,7 +2,7 @@
   "name": "@bepalo/jwt",
   "description": "JsonWebToken utility class and helpers for signing, verifying, and decoding JWT payloads.",
   "author": "Natnael Eshetu",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "license": "MIT",
   "exports": "./mod.ts"
 }
