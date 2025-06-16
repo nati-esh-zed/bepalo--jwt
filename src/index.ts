@@ -4,26 +4,57 @@
  *
  * USAGE:
  *  ```ts
+ *  import { JWT, JwtError } from "@bepalo/jwt";
  *
+ *  const payload = { userId: 123, role: "admin" };
+ *  const alg = "HS256";
+ *  const key = JWT.genKey(alg);
+ *  const jwt = JWT.create<typeof payload>(key, alg);
+ *  const token = jwt.sign({
+ *    ...payload,
+ *    exp: JWT.in(1).Minutes,
+ *    iat: JWT.now(),
+ *    jti: "jti-1234",
+ *    iss: "auth-server",
+ *    sub: "session",
+ *    aud: ["auth-client-a", "auth-client-b"],
+ *  });
+ *  // verify signature only
+ *  const { valid: signatureValid } = jwt.verifySignature(token);
+ *  // verify signature and claims and return payload
+ *  const { valid, payload: decoded, reason } = jwt.verify(token);
+ *  if (!valid) {
+ *    throw new JwtError(reason);
+ *  }
+ *  typeof key === "string"
+ *    ? console.log(key)
+ *    : console.log(key.publicKey, key.privateKey);
+ *  console.log({
+ *    alg,
+ *    token,
+ *    len: token.length,
+ *    signatureValid,
+ *    valid,
+ *    decoded,
+ *  });
  *  ```
  *
  *
- * @module
+ * @module @bepalo/jwt
+ * @exports JWT class -- main class
+ * @exports SURecord type
  * @exports JwtError class
  * @exports JwtSymmetricAlgorithm type
  * @exports JwtAsymmetricAlgorithm type
  * @exports JwtAlgorithm type
- * @exports JwtAlgorithmEnum enum
  * @exports JwtHeader type
  * @exports JwtPayload type
  * @exports Jwt type
+ * @exports JwtResult type
+ * @exports KeyPair type
  * @exports JWTVerifyOptions type
- * @exports Time
- * @exports JWT class
  *
  */
-
-// import { Buffer } from "node";
 import {
   createHmac,
   createSign,
@@ -220,9 +251,11 @@ export type Jwt<CustomPayload extends SURecord> = {
   signature: string;
 };
 
-export type JwtResult<CustomPayload extends SURecord> =
-  | { valid: true; payload?: JwtPayload<CustomPayload> }
-  | { valid: false; reason: string };
+export type JwtResult<CustomPayload extends SURecord> = {
+  valid: boolean;
+  payload?: JwtPayload<CustomPayload>;
+  reason?: string;
+};
 
 /**
  * Key pair type. for symmetric algorithms set both private and public keys to the key.
@@ -479,11 +512,11 @@ export class JWT<CustomPayload extends SURecord> {
     if (typeof key === "string") {
       if (!ValidJwtSymmetricAlgorithms.has(alg as JwtSymmetricAlgorithm)) {
         throw new JwtError("Invalid or unsupported symmetric JWT algorithm");
-      } else if (
-        !ValidJwtAsymmetricAlgorithms.has(alg as JwtAsymmetricAlgorithm)
-      ) {
-        throw new JwtError("Invalid or unsupported asymmetric JWT algorithm");
       }
+    } else if (
+      !ValidJwtAsymmetricAlgorithms.has(alg as JwtAsymmetricAlgorithm)
+    ) {
+      throw new JwtError("Invalid or unsupported asymmetric JWT algorithm");
     }
     return typeof key === "string"
       ? new JWT<CustomPayload>(
@@ -724,8 +757,13 @@ export class JWT<CustomPayload extends SURecord> {
       return { valid: false, reason: "invalid signature" };
     }
 
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString());
+    const jwtPayload = this.#safelyParseJson<
+      JwtPayload<CustomPayload & { exp: boolean; nbf: boolean }>
+    >(Buffer.from(body, "base64url").toString());
+    if (!jwtPayload) {
+      return { valid: false, reason: "invalid payload" };
+    }
 
-    return this.#validateClaims(payload, verifyJwt);
+    return this.#validateClaims(jwtPayload, verifyJwt);
   }
 }
