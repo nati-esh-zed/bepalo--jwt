@@ -1,28 +1,4 @@
 "use strict";
-/**
- *
- * JsonWebToken utility class and helpers for signing, verifying, and decoding JWT payloads.
- *
- * USAGE:
- *  ```ts
- *
- *  ```
- *
- *
- * @module
- * @exports JwtError class
- * @exports JwtSymmetricAlgorithm type
- * @exports JwtAsymmetricAlgorithm type
- * @exports JwtAlgorithm type
- * @exports JwtAlgorithmEnum enum
- * @exports JwtHeader type
- * @exports JwtPayload type
- * @exports Jwt type
- * @exports JWTVerifyOptions type
- * @exports Time
- * @exports JWT class
- *
- */
 var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
@@ -37,7 +13,63 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
 var _JWT_instances, _a, _JWT_alg, _JWT_algorithm, _JWT_privateKey, _JWT_publicKey, _JWT_isAsymmetric, _JWT_isRsaPss, _JWT_signData, _JWT_verifySignature, _JWT_validateAudience, _JWT_validateClaims, _JWT_safelyParseJson;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JWT = exports.JwtError = void 0;
-// import { Buffer } from "node";
+/**
+ *
+ * JsonWebToken utility class and helpers for signing, verifying, and decoding JWT payloads.
+ *
+ * USAGE:
+ *  ```ts
+ *  import { JWT, JwtError } from "@bepalo/jwt";
+ *
+ *  const payload = { userId: 123, role: "admin" };
+ *  const alg = "HS256";
+ *  const key = JWT.genKey(alg);
+ *  const jwt = JWT.create<typeof payload>(key, alg);
+ *  const token = jwt.sign({
+ *    ...payload,
+ *    exp: JWT.in(1).Minutes,
+ *    iat: JWT.now(),
+ *    jti: "jti-1234",
+ *    iss: "auth-server",
+ *    sub: "session",
+ *    aud: ["auth-client-a", "auth-client-b"],
+ *  });
+ *  // verify signature only
+ *  const { valid: signatureValid } = jwt.verifySignature(token);
+ *  // verify signature and claims and return payload
+ *  const { valid, payload: decoded, reason } = jwt.verify(token);
+ *  if (!valid) {
+ *    throw new JwtError(reason);
+ *  }
+ *  typeof key === "string"
+ *    ? console.log(key)
+ *    : console.log(key.publicKey, key.privateKey);
+ *  console.log({
+ *    alg,
+ *    token,
+ *    len: token.length,
+ *    signatureValid,
+ *    valid,
+ *    decoded,
+ *  });
+ *  ```
+ *
+ *
+ * @module @bepalo/jwt
+ * @exports JWT class -- main class
+ * @exports SURecord type
+ * @exports JwtError class
+ * @exports JwtSymmetricAlgorithm type
+ * @exports JwtAsymmetricAlgorithm type
+ * @exports JwtAlgorithm type
+ * @exports JwtHeader type
+ * @exports JwtPayload type
+ * @exports Jwt type
+ * @exports JwtResult type
+ * @exports KeyPair type
+ * @exports JWTVerifyOptions type
+ *
+ */
 const crypto_1 = require("crypto");
 const time_1 = require("@bepalo/time");
 /**
@@ -196,7 +228,7 @@ class JWT {
      * Generate key pair based on algorithm and optional parameters.
      * Default: modulus lengths of RS256|PS256 (2048), RS384|PS384 (3072), RS512|PS512 (4096).
      */
-    static genKeyPair(alg = "ES384", options) {
+    static genKeyPair(alg, options) {
         var _b;
         switch (alg) {
             case "ES256":
@@ -258,7 +290,7 @@ class JWT {
      * Generate a secure HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
      * Default: modulus lengths of RS256|PS256 (2048), RS384|PS384 (3072), RS512|PS512 (4096).
      */
-    static genKey(alg = "HS256", options) {
+    static genKey(alg, options) {
         if (ValidJwtSymmetricAlgorithms.has(alg)) {
             const key = _a.genHmacKey(alg);
             return key;
@@ -270,7 +302,7 @@ class JWT {
     /**
      * Create a JWT instance using a symmetric algorithm.
      */
-    static createSymmetric(key, alg = "HS256") {
+    static createSymmetric(key, alg) {
         if (!key || !ValidJwtSymmetricAlgorithms.has(alg)) {
             throw new JwtError("Invalid or unsupported symmetric JWT algorithm");
         }
@@ -279,7 +311,7 @@ class JWT {
     /**
      * Create a JWT instance using an asymmetric algorithm.
      */
-    static createAsymmetric(key, alg = "ES384") {
+    static createAsymmetric(key, alg) {
         if (!ValidJwtAsymmetricAlgorithms.has(alg)) {
             throw new JwtError("Invalid or unsupported asymmetric JWT algorithm");
         }
@@ -288,14 +320,14 @@ class JWT {
     /**
      * Create a JWT instance using a symmetric or asymmetric algorithm.
      */
-    static create(key, alg = "HS256") {
+    static create(key, alg) {
         if (typeof key === "string") {
             if (!ValidJwtSymmetricAlgorithms.has(alg)) {
                 throw new JwtError("Invalid or unsupported symmetric JWT algorithm");
             }
-            else if (!ValidJwtAsymmetricAlgorithms.has(alg)) {
-                throw new JwtError("Invalid or unsupported asymmetric JWT algorithm");
-            }
+        }
+        else if (!ValidJwtAsymmetricAlgorithms.has(alg)) {
+            throw new JwtError("Invalid or unsupported asymmetric JWT algorithm");
         }
         return typeof key === "string"
             ? new _a({ privateKey: key, publicKey: key }, alg, false, false)
@@ -393,8 +425,11 @@ class JWT {
         if (!signaturesMatch) {
             return { valid: false, reason: "invalid signature" };
         }
-        const payload = JSON.parse(Buffer.from(body, "base64url").toString());
-        return __classPrivateFieldGet(this, _JWT_instances, "m", _JWT_validateClaims).call(this, payload, verifyJwt);
+        const jwtPayload = __classPrivateFieldGet(this, _JWT_instances, "m", _JWT_safelyParseJson).call(this, Buffer.from(body, "base64url").toString());
+        if (!jwtPayload) {
+            return { valid: false, reason: "invalid payload" };
+        }
+        return __classPrivateFieldGet(this, _JWT_instances, "m", _JWT_validateClaims).call(this, jwtPayload, verifyJwt);
     }
 }
 exports.JWT = JWT;

@@ -1,27 +1,3 @@
-/**
- *
- * JsonWebToken utility class and helpers for signing, verifying, and decoding JWT payloads.
- *
- * USAGE:
- *  ```ts
- *
- *  ```
- *
- *
- * @module
- * @exports JwtError class
- * @exports JwtSymmetricAlgorithm type
- * @exports JwtAsymmetricAlgorithm type
- * @exports JwtAlgorithm type
- * @exports JwtAlgorithmEnum enum
- * @exports JwtHeader type
- * @exports JwtPayload type
- * @exports Jwt type
- * @exports JWTVerifyOptions type
- * @exports Time
- * @exports JWT class
- *
- */
 import { RelativeTime } from "@bepalo/time";
 export type SURecord = Record<string, unknown>;
 /**
@@ -103,17 +79,15 @@ export type JwtPayload<CustomData extends SURecord> = {
 /**
  * A fully parsed JWT token.
  */
-export type Jwt<CustomPayload extends SURecord> = {
+export type Jwt<Payload extends SURecord> = {
     header: JwtHeader;
-    payload: JwtPayload<CustomPayload> | string;
+    payload: JwtPayload<Payload> | string;
     signature: string;
 };
-export type JwtResult<CustomPayload extends SURecord> = {
-    valid: true;
-    payload?: JwtPayload<CustomPayload>;
-} | {
-    valid: false;
-    reason: string;
+export type JwtResult<Payload extends SURecord> = {
+    valid: boolean;
+    payload?: JwtPayload<Payload>;
+    reason?: string;
 };
 /**
  * Key pair type. for symmetric algorithms set both private and public keys to the key.
@@ -166,7 +140,7 @@ export type JWTVerifyOptions = {
 /**
  * JWT class providing utility function and methods to sign, verify and decode tokens.
  */
-export declare class JWT<CustomPayload extends SURecord> {
+export declare class JWT<Payload extends SURecord> {
     #private;
     get alg(): JwtAlgorithm;
     get algorithm(): JwtAlgorithmEnum;
@@ -200,14 +174,14 @@ export declare class JWT<CustomPayload extends SURecord> {
      * Generate key pair based on algorithm and optional parameters.
      * Default: modulus lengths of RS256|PS256 (2048), RS384|PS384 (3072), RS512|PS512 (4096).
      */
-    static genKeyPair(alg?: JwtAsymmetricAlgorithm, options?: {
+    static genKeyPair(alg: JwtAsymmetricAlgorithm, options?: {
         modulusLength?: number;
     }): KeyPair;
     /**
      * Generate a secure HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
      * Default: modulus lengths of RS256|PS256 (2048), RS384|PS384 (3072), RS512|PS512 (4096).
      */
-    static genKey(alg?: JwtAlgorithm, options?: {
+    static genKey(alg: JwtAlgorithm, options?: {
         /**
          * Used only for RSA and RSA-PSS
          */
@@ -216,28 +190,28 @@ export declare class JWT<CustomPayload extends SURecord> {
     /**
      * Create a JWT instance using a symmetric algorithm.
      */
-    static createSymmetric<CustomPayload extends SURecord>(key: string | undefined, alg?: JwtSymmetricAlgorithm): JWT<CustomPayload>;
+    static createSymmetric<Payload extends SURecord>(key: string | undefined, alg: JwtSymmetricAlgorithm): JWT<Payload>;
     /**
      * Create a JWT instance using an asymmetric algorithm.
      */
-    static createAsymmetric<CustomPayload extends SURecord>(key: KeyPair, alg?: JwtAsymmetricAlgorithm): JWT<CustomPayload>;
+    static createAsymmetric<Payload extends SURecord>(key: KeyPair, alg: JwtAsymmetricAlgorithm): JWT<Payload>;
     /**
      * Create a JWT instance using a symmetric or asymmetric algorithm.
      */
-    static create<CustomPayload extends SURecord>(key: KeyPair | string, alg?: JwtAlgorithm): JWT<CustomPayload>;
+    static create<Payload extends SURecord>(key: KeyPair | string, alg: JwtAlgorithm): JWT<Payload>;
     private constructor();
     /**
      * Sign a payload and return a JWT token string.
      */
-    sign(payload: JwtPayload<CustomPayload>): string;
+    sign(payload: JwtPayload<Payload>): string;
     /**
      * Verify only the signature of the token (no claims checked).
      */
-    verifySignature(token: string, verifyJwt?: Pick<JWTVerifyOptions, "strict">): JwtResult<CustomPayload>;
+    verifySignature(token: string, verifyJwt?: Pick<JWTVerifyOptions, "strict">): JwtResult<Payload>;
     /**
      * Fully verify a token including signature and claims.
      * Returns a JwtResult with a valid payload on success.
      */
-    verify(token: string, verifyJwt?: JWTVerifyOptions): JwtResult<CustomPayload>;
+    verify(token: string, verifyJwt?: JWTVerifyOptions): JwtResult<Payload>;
 }
 export {};
