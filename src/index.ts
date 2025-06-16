@@ -245,15 +245,15 @@ export type JwtPayload<CustomData extends SURecord> = {
 /**
  * A fully parsed JWT token.
  */
-export type Jwt<CustomPayload extends SURecord> = {
+export type Jwt<Payload extends SURecord> = {
   header: JwtHeader;
-  payload: JwtPayload<CustomPayload> | string;
+  payload: JwtPayload<Payload> | string;
   signature: string;
 };
 
-export type JwtResult<CustomPayload extends SURecord> = {
+export type JwtResult<Payload extends SURecord> = {
   valid: boolean;
-  payload?: JwtPayload<CustomPayload>;
+  payload?: JwtPayload<Payload>;
   reason?: string;
 };
 
@@ -307,7 +307,7 @@ export type JWTVerifyOptions = {
 /**
  * JWT class providing utility function and methods to sign, verify and decode tokens.
  */
-export class JWT<CustomPayload extends SURecord> {
+export class JWT<Payload extends SURecord> {
   #alg: JwtAlgorithm;
   #algorithm: JwtAlgorithmEnum;
   #privateKey: string;
@@ -363,7 +363,7 @@ export class JWT<CustomPayload extends SURecord> {
   }
 
   /**
-   * Generate a secure HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
+   * Generate a rando HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
    * Default: 256 bits (32 bytes), which is good for HS256.
    */
   static genHmacKey(alg: JwtSymmetricAlgorithm): string {
@@ -382,7 +382,7 @@ export class JWT<CustomPayload extends SURecord> {
    * Default: modulus lengths of RS256|PS256 (2048), RS384|PS384 (3072), RS512|PS512 (4096).
    */
   static genKeyPair(
-    alg: JwtAsymmetricAlgorithm = "ES384",
+    alg: JwtAsymmetricAlgorithm,
     options?: {
       modulusLength?: number;
     }
@@ -446,11 +446,11 @@ export class JWT<CustomPayload extends SURecord> {
   }
 
   /**
-   * Generate a secure HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
+   * Generate a rando HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
    * Default: modulus lengths of RS256|PS256 (2048), RS384|PS384 (3072), RS512|PS512 (4096).
    */
   static genKey(
-    alg: JwtAlgorithm = "HS256",
+    alg: JwtAlgorithm,
     options?: {
       /**
        * Used only for RSA and RSA-PSS
@@ -469,14 +469,14 @@ export class JWT<CustomPayload extends SURecord> {
   /**
    * Create a JWT instance using a symmetric algorithm.
    */
-  static createSymmetric<CustomPayload extends SURecord>(
+  static createSymmetric<Payload extends SURecord>(
     key: string | undefined,
-    alg: JwtSymmetricAlgorithm = "HS256"
-  ): JWT<CustomPayload> {
+    alg: JwtSymmetricAlgorithm
+  ): JWT<Payload> {
     if (!key || !ValidJwtSymmetricAlgorithms.has(alg)) {
       throw new JwtError("Invalid or unsupported symmetric JWT algorithm");
     }
-    return new JWT<CustomPayload>(
+    return new JWT<Payload>(
       { privateKey: key, publicKey: key },
       alg,
       false,
@@ -487,28 +487,23 @@ export class JWT<CustomPayload extends SURecord> {
   /**
    * Create a JWT instance using an asymmetric algorithm.
    */
-  static createAsymmetric<CustomPayload extends SURecord>(
+  static createAsymmetric<Payload extends SURecord>(
     key: KeyPair,
-    alg: JwtAsymmetricAlgorithm = "ES384"
-  ): JWT<CustomPayload> {
+    alg: JwtAsymmetricAlgorithm
+  ): JWT<Payload> {
     if (!ValidJwtAsymmetricAlgorithms.has(alg)) {
       throw new JwtError("Invalid or unsupported asymmetric JWT algorithm");
     }
-    return new JWT<CustomPayload>(
-      key,
-      alg,
-      true,
-      JwtAsymmetricPSAlgorithms.has(alg)
-    );
+    return new JWT<Payload>(key, alg, true, JwtAsymmetricPSAlgorithms.has(alg));
   }
 
   /**
    * Create a JWT instance using a symmetric or asymmetric algorithm.
    */
-  static create<CustomPayload extends SURecord>(
+  static create<Payload extends SURecord>(
     key: KeyPair | string,
-    alg: JwtAlgorithm = "HS256"
-  ): JWT<CustomPayload> {
+    alg: JwtAlgorithm
+  ): JWT<Payload> {
     if (typeof key === "string") {
       if (!ValidJwtSymmetricAlgorithms.has(alg as JwtSymmetricAlgorithm)) {
         throw new JwtError("Invalid or unsupported symmetric JWT algorithm");
@@ -519,13 +514,8 @@ export class JWT<CustomPayload extends SURecord> {
       throw new JwtError("Invalid or unsupported asymmetric JWT algorithm");
     }
     return typeof key === "string"
-      ? new JWT<CustomPayload>(
-          { privateKey: key, publicKey: key },
-          alg,
-          false,
-          false
-        )
-      : new JWT<CustomPayload>(
+      ? new JWT<Payload>({ privateKey: key, publicKey: key }, alg, false, false)
+      : new JWT<Payload>(
           key,
           alg,
           true,
@@ -617,10 +607,10 @@ export class JWT<CustomPayload extends SURecord> {
   }
 
   #validateClaims(
-    payload: JwtPayload<CustomPayload> & { exp: number; nbf: number },
+    payload: JwtPayload<Payload> & { exp: number; nbf: number },
     verifyJwt: JWTVerifyOptions,
     now: number = JWT.now()
-  ): JwtResult<CustomPayload> {
+  ): JwtResult<Payload> {
     if (verifyJwt.jti && payload.jti !== verifyJwt.jti) {
       return { valid: false, reason: "jti (jwt id) mismatch" };
     }
@@ -662,7 +652,7 @@ export class JWT<CustomPayload extends SURecord> {
   /**
    * Sign a payload and return a JWT token string.
    */
-  sign(payload: JwtPayload<CustomPayload>): string {
+  sign(payload: JwtPayload<Payload>): string {
     const alg = this.#alg;
     const algorithm = this.#algorithm;
     const header = Buffer.from(JSON.stringify({ typ: "JWT", alg })).toString(
@@ -680,7 +670,7 @@ export class JWT<CustomPayload extends SURecord> {
   verifySignature(
     token: string,
     verifyJwt?: Pick<JWTVerifyOptions, "strict">
-  ): JwtResult<CustomPayload> {
+  ): JwtResult<Payload> {
     verifyJwt = { strict: true, ...verifyJwt };
     const [header, body, signature] = token.split(".");
     if (!(header && body && signature)) {
@@ -717,13 +707,10 @@ export class JWT<CustomPayload extends SURecord> {
   }
 
   /**
-   * Fully verify a token including signature and claims.
+   * Verify a token including signature and claims.
    * Returns a JwtResult with a valid payload on success.
    */
-  verify(
-    token: string,
-    verifyJwt?: JWTVerifyOptions
-  ): JwtResult<CustomPayload> {
+  verify(token: string, verifyJwt?: JWTVerifyOptions): JwtResult<Payload> {
     verifyJwt = { strict: true, exp: true, nbf: true, ...verifyJwt };
     const [header, body, signature] = token.split(".");
     if (!(header && body && signature)) {
@@ -758,7 +745,7 @@ export class JWT<CustomPayload extends SURecord> {
     }
 
     const jwtPayload = this.#safelyParseJson<
-      JwtPayload<CustomPayload & { exp: boolean; nbf: boolean }>
+      JwtPayload<Payload & { exp: boolean; nbf: boolean }>
     >(Buffer.from(body, "base64url").toString());
     if (!jwtPayload) {
       return { valid: false, reason: "invalid payload" };
