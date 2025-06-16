@@ -43,9 +43,9 @@ declare enum JwtAlgorithmEnum {
     PS256 = "RSA-PSS-SHA256",
     PS384 = "RSA-PSS-SHA384",
     PS512 = "RSA-PSS-SHA512",
-    ES256 = "sha3-256",
-    ES384 = "sha3-384",
-    ES512 = "sha3-512",
+    ES256 = "sha256",
+    ES384 = "sha384",
+    ES512 = "sha512",
     none = "none"
 }
 /**

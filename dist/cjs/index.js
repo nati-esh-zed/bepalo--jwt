@@ -95,9 +95,9 @@ var JwtAlgorithmEnum;
     JwtAlgorithmEnum["PS256"] = "RSA-PSS-SHA256";
     JwtAlgorithmEnum["PS384"] = "RSA-PSS-SHA384";
     JwtAlgorithmEnum["PS512"] = "RSA-PSS-SHA512";
-    JwtAlgorithmEnum["ES256"] = "sha3-256";
-    JwtAlgorithmEnum["ES384"] = "sha3-384";
-    JwtAlgorithmEnum["ES512"] = "sha3-512";
+    JwtAlgorithmEnum["ES256"] = "sha256";
+    JwtAlgorithmEnum["ES384"] = "sha384";
+    JwtAlgorithmEnum["ES512"] = "sha512";
     JwtAlgorithmEnum["none"] = "none";
 })(JwtAlgorithmEnum || (JwtAlgorithmEnum = {}));
 /**

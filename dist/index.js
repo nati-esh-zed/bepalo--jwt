@@ -1,4 +1,3 @@
-"use strict";
 var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
@@ -11,8 +10,6 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
 var _JWT_instances, _a, _JWT_alg, _JWT_algorithm, _JWT_privateKey, _JWT_publicKey, _JWT_isAsymmetric, _JWT_isRsaPss, _JWT_signData, _JWT_verifySignature, _JWT_validateAudience, _JWT_validateClaims, _JWT_safelyParseJson;
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.JWT = exports.JwtError = void 0;
 /**
  *
  * JsonWebToken utility class and helpers for signing, verifying, and decoding JWT payloads.
@@ -70,17 +67,16 @@ exports.JWT = exports.JwtError = void 0;
  * @exports JWTVerifyOptions type
  *
  */
-const crypto_1 = require("crypto");
-const time_1 = require("@bepalo/time");
+import { createHmac, createSign, createVerify, generateKeyPairSync, sign, verify, constants, randomBytes, } from "crypto";
+import { RelativeTime } from "@bepalo/time";
 /**
  * JsonWebToken Error class
  */
-class JwtError extends Error {
+export class JwtError extends Error {
     constructor(message) {
         super(message);
     }
 }
-exports.JwtError = JwtError;
 /**
  * Internal mapping of algorithms to Node.js crypto identifiers.
  */
@@ -95,9 +91,9 @@ var JwtAlgorithmEnum;
     JwtAlgorithmEnum["PS256"] = "RSA-PSS-SHA256";
     JwtAlgorithmEnum["PS384"] = "RSA-PSS-SHA384";
     JwtAlgorithmEnum["PS512"] = "RSA-PSS-SHA512";
-    JwtAlgorithmEnum["ES256"] = "sha3-256";
-    JwtAlgorithmEnum["ES384"] = "sha3-384";
-    JwtAlgorithmEnum["ES512"] = "sha3-512";
+    JwtAlgorithmEnum["ES256"] = "sha256";
+    JwtAlgorithmEnum["ES384"] = "sha384";
+    JwtAlgorithmEnum["ES512"] = "sha512";
     JwtAlgorithmEnum["none"] = "none";
 })(JwtAlgorithmEnum || (JwtAlgorithmEnum = {}));
 /**
@@ -170,7 +166,7 @@ const ValidJwtAlgorithms = new Set([
 /**
  * JWT class providing utility function and methods to sign, verify and decode tokens.
  */
-class JWT {
+export class JWT {
     get alg() {
         return __classPrivateFieldGet(this, _JWT_alg, "f");
     }
@@ -190,25 +186,25 @@ class JWT {
      * Get the future time in seconds. eg. `JWT.for(10).Minutes`
      */
     static for(time) {
-        return new time_1.RelativeTime(time, _a.now());
+        return new RelativeTime(time, _a.now());
     }
     /**
      * Get the future time in seconds. eg. `exp: JWT.in(10).Minutes`
      */
     static in(time) {
-        return new time_1.RelativeTime(time, _a.now());
+        return new RelativeTime(time, _a.now());
     }
     /**
      * Get the future time in seconds. eg. `nbf: JWT.after(5).Minutes`
      */
     static after(time) {
-        return new time_1.RelativeTime(time, _a.now());
+        return new RelativeTime(time, _a.now());
     }
     /**
      * Get the past time in seconds. eg. `JWT.before(5).Minutes`
      */
     static before(time) {
-        return new time_1.RelativeTime(-time, _a.now());
+        return new RelativeTime(-time, _a.now());
     }
     /**
      * Generate a rando HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
@@ -217,11 +213,11 @@ class JWT {
     static genHmacKey(alg) {
         switch (alg) {
             case "HS256":
-                return (0, crypto_1.randomBytes)(32).toString("base64url");
+                return randomBytes(32).toString("base64url");
             case "HS384":
-                return (0, crypto_1.randomBytes)(48).toString("base64url");
+                return randomBytes(48).toString("base64url");
             case "HS512":
-                return (0, crypto_1.randomBytes)(64).toString("base64url");
+                return randomBytes(64).toString("base64url");
         }
     }
     /**
@@ -232,7 +228,7 @@ class JWT {
         var _b;
         switch (alg) {
             case "ES256":
-                return (0, crypto_1.generateKeyPairSync)("ec", {
+                return generateKeyPairSync("ec", {
                     namedCurve: "P-256",
                     publicKeyEncoding: {
                         type: "spki",
@@ -244,7 +240,7 @@ class JWT {
                     },
                 });
             case "ES384":
-                return (0, crypto_1.generateKeyPairSync)("ec", {
+                return generateKeyPairSync("ec", {
                     namedCurve: "P-384",
                     publicKeyEncoding: {
                         type: "spki",
@@ -256,7 +252,7 @@ class JWT {
                     },
                 });
             case "ES512":
-                return (0, crypto_1.generateKeyPairSync)("ec", {
+                return generateKeyPairSync("ec", {
                     namedCurve: "P-521",
                     publicKeyEncoding: {
                         type: "spki",
@@ -273,7 +269,7 @@ class JWT {
             case "PS256":
             case "PS384":
             case "PS512":
-                return (0, crypto_1.generateKeyPairSync)("rsa", {
+                return generateKeyPairSync("rsa", {
                     modulusLength: (_b = options === null || options === void 0 ? void 0 : options.modulusLength) !== null && _b !== void 0 ? _b : JwtAlgorithmModulusLenEnum[alg],
                     publicKeyEncoding: {
                         type: "spki",
@@ -432,33 +428,32 @@ class JWT {
         return __classPrivateFieldGet(this, _JWT_instances, "m", _JWT_validateClaims).call(this, jwtPayload, verifyJwt);
     }
 }
-exports.JWT = JWT;
 _a = JWT, _JWT_alg = new WeakMap(), _JWT_algorithm = new WeakMap(), _JWT_privateKey = new WeakMap(), _JWT_publicKey = new WeakMap(), _JWT_isAsymmetric = new WeakMap(), _JWT_isRsaPss = new WeakMap(), _JWT_instances = new WeakSet(), _JWT_signData = function _JWT_signData(alg, algorithm, dataToSign) {
     return __classPrivateFieldGet(this, _JWT_isAsymmetric, "f")
         ? __classPrivateFieldGet(this, _JWT_isRsaPss, "f")
-            ? (0, crypto_1.sign)(JwtAlgorithmHashEnum[alg], Buffer.from(dataToSign), {
+            ? sign(JwtAlgorithmHashEnum[alg], Buffer.from(dataToSign), {
                 key: __classPrivateFieldGet(this, _JWT_privateKey, "f"),
-                padding: crypto_1.constants.RSA_PKCS1_PSS_PADDING,
-                saltLength: crypto_1.constants.RSA_PSS_SALTLEN_DIGEST,
+                padding: constants.RSA_PKCS1_PSS_PADDING,
+                saltLength: constants.RSA_PSS_SALTLEN_DIGEST,
             }).toString("base64url")
-            : (0, crypto_1.createSign)(algorithm)
+            : createSign(algorithm)
                 .update(dataToSign)
                 .sign(__classPrivateFieldGet(this, _JWT_privateKey, "f"), "base64url")
-        : (0, crypto_1.createHmac)(algorithm, __classPrivateFieldGet(this, _JWT_privateKey, "f"), { encoding: "base64url" })
+        : createHmac(algorithm, __classPrivateFieldGet(this, _JWT_privateKey, "f"), { encoding: "base64url" })
             .update(dataToSign)
             .digest("base64url");
 }, _JWT_verifySignature = function _JWT_verifySignature(alg, algorithm, dataToVerify, signature) {
     return __classPrivateFieldGet(this, _JWT_isAsymmetric, "f")
         ? __classPrivateFieldGet(this, _JWT_isRsaPss, "f")
-            ? (0, crypto_1.verify)(JwtAlgorithmHashEnum[alg], Buffer.from(dataToVerify), {
+            ? verify(JwtAlgorithmHashEnum[alg], Buffer.from(dataToVerify), {
                 key: __classPrivateFieldGet(this, _JWT_privateKey, "f"),
-                padding: crypto_1.constants.RSA_PKCS1_PSS_PADDING,
-                saltLength: crypto_1.constants.RSA_PSS_SALTLEN_DIGEST,
+                padding: constants.RSA_PKCS1_PSS_PADDING,
+                saltLength: constants.RSA_PSS_SALTLEN_DIGEST,
             }, Buffer.from(signature, "base64url"))
-            : (0, crypto_1.createVerify)(algorithm)
+            : createVerify(algorithm)
                 .update(dataToVerify)
                 .verify(__classPrivateFieldGet(this, _JWT_publicKey, "f"), signature, "base64url")
-        : (0, crypto_1.createHmac)(algorithm, __classPrivateFieldGet(this, _JWT_publicKey, "f"), { encoding: "base64url" })
+        : createHmac(algorithm, __classPrivateFieldGet(this, _JWT_publicKey, "f"), { encoding: "base64url" })
             .update(dataToVerify)
             .digest("base64url") === signature;
 }, _JWT_validateAudience = function _JWT_validateAudience(expectedAudience, audience) {
