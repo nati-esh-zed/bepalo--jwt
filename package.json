@@ -36,6 +36,5 @@
   "dependencies": {
     "@bepalo/time": "^1.2.5"
   },
-  "type": "module",
-  "private": true
+  "type": "module"
 }
