@@ -166,7 +166,7 @@ export declare class JWT<Payload extends SURecord> {
      */
     static before(time: number): RelativeTime;
     /**
-     * Generate a secure HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
+     * Generate a rando HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
      * Default: 256 bits (32 bytes), which is good for HS256.
      */
     static genHmacKey(alg: JwtSymmetricAlgorithm): string;
@@ -178,7 +178,7 @@ export declare class JWT<Payload extends SURecord> {
         modulusLength?: number;
     }): KeyPair;
     /**
-     * Generate a secure HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
+     * Generate a rando HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
      * Default: modulus lengths of RS256|PS256 (2048), RS384|PS384 (3072), RS512|PS512 (4096).
      */
     static genKey(alg: JwtAlgorithm, options?: {
@@ -209,7 +209,7 @@ export declare class JWT<Payload extends SURecord> {
      */
     verifySignature(token: string, verifyJwt?: Pick<JWTVerifyOptions, "strict">): JwtResult<Payload>;
     /**
-     * Fully verify a token including signature and claims.
+     * Verify a token including signature and claims.
      * Returns a JwtResult with a valid payload on success.
      */
     verify(token: string, verifyJwt?: JWTVerifyOptions): JwtResult<Payload>;

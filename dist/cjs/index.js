@@ -211,7 +211,7 @@ class JWT {
         return new time_1.RelativeTime(-time, _a.now());
     }
     /**
-     * Generate a secure HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
+     * Generate a rando HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
      * Default: 256 bits (32 bytes), which is good for HS256.
      */
     static genHmacKey(alg) {
@@ -287,7 +287,7 @@ class JWT {
         }
     }
     /**
-     * Generate a secure HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
+     * Generate a rando HMAC key for HS256 (32 bytes), HS384 (36 bytes), or HS512 (64 bytes) encoded in base64url format.
      * Default: modulus lengths of RS256|PS256 (2048), RS384|PS384 (3072), RS512|PS512 (4096).
      */
     static genKey(alg, options) {
@@ -396,7 +396,7 @@ class JWT {
         return { valid: true };
     }
     /**
-     * Fully verify a token including signature and claims.
+     * Verify a token including signature and claims.
      * Returns a JwtResult with a valid payload on success.
      */
     verify(token, verifyJwt) {
