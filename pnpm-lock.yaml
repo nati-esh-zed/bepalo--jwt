@@ -12,6 +12,9 @@ importers:
         specifier: ^1.2.5
         version: 1.2.5
     devDependencies:
+      '@types/bun':
+        specifier: latest
+        version: 1.2.17
       '@types/node':
         specifier: ^24.0.2
         version: 24.0.2
@@ -280,6 +283,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@types/bun@1.2.17':
+    resolution: {integrity: sha512-l/BYs/JYt+cXA/0+wUhulYJB6a6p//GTPiJ7nV+QHa8iiId4HZmnu/3J/SowP5g0rTiERY2kfGKXEK5Ehltx4Q==}
+
   '@types/chai@5.2.2':
     resolution: {integrity: sha512-8kB30R7Hwqf40JPiKhVzodJs2Qc1ZJ5zuT3uzw5Hq/dhNCl3G3l83jfpdI1e20BP348+fV7VIL/+FxaXkqBmWg==}
 
@@ -327,6 +333,9 @@ packages:
   assertion-error@2.0.1:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
+
+  bun-types@1.2.17:
+    resolution: {integrity: sha512-ElC7ItwT3SCQwYZDYoAH+q6KT4Fxjl8DtZ6qDulUFBmXA8YB4xo+l54J9ZJN+k2pphfn9vk7kfubeSd5QfTVJQ==}
 
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
@@ -686,6 +695,10 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.43.0':
     optional: true
 
+  '@types/bun@1.2.17':
+    dependencies:
+      bun-types: 1.2.17
+
   '@types/chai@5.2.2':
     dependencies:
       '@types/deep-eql': 4.0.2
@@ -743,6 +756,10 @@ snapshots:
       tinyrainbow: 2.0.0
 
   assertion-error@2.0.1: {}
+
+  bun-types@1.2.17:
+    dependencies:
+      '@types/node': 24.0.2
 
   cac@6.7.14: {}
 
